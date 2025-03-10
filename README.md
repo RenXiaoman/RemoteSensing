@@ -1,15 +1,15 @@
 
 
 
-#Code for knowledge-based systems 2024 paper, "A Global Linear Attention Network for Semantic Segmentation of Remote Sensing Images"
-#Train
+#Code for knowledge-based systems 2024 paper, "A Global Linear Attention Network for Semantic Segmentation of Remote Sensing Images"#
+#Train #
 python train.py
 
-#Test
+#Test #
 python test.py
 
-#Datasets
+#Datasets#
 All datasets including ISPRS Potsdam, ISPRS Vaihingen, can be downloaded <a href="[超链接地址](https://www.isprs.org/education/benchmarks/UrbanSemLab/2d-sem-label-potsdam.aspx)" target="_blank">here</a>
 
-#Contact
+#Contact#
 Yiwei Fang(yiweifang@hhu.edu.cn)
