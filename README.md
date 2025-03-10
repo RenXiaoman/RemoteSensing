@@ -6,7 +6,8 @@ python train.py
 python test.py
 
 # Datasets #
-All datasets including ISPRS Potsdam, ISPRS Vaihingen, can be downloaded <a href="[isprs](https://www.isprs.org/education/benchmarks/UrbanSemLab/2d-sem-label-potsdam.aspx)" target="_blank">here</a>
+All datasets including ISPRS Potsdam, ISPRS Vaihingen, can be downloaded [here]([http://www.baidu.com](https://www.isprs.org/education/benchmarks/UrbanSemLab/2d-sem-label-potsdam.aspx))
+
 
 # Contact #
 Yiwei Fang(yiweifang@hhu.edu.cn)
