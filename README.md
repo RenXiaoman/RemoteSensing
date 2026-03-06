@@ -20,15 +20,15 @@ Semantic segmentation of remote sensing images (RSIs) plays a crucial role in va
 
 ## Method Overview💡
 
-<img src="assets/network.png" alt="图片描述" width="918">
+<img src="images/network.png" alt="图片描述" width="918">
 
 
 
 ## Visualization👀
 
-![feature_sim_vis](assets/Potsdam.png)
+![feature_sim_vis](images/Potsdam.png)
 
-![feat_fusion_vis](assets/Vaihingen.png)
+![feat_fusion_vis](images/Vaihingen.png)
 
 ## Usage🧠
 
