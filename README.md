@@ -96,7 +96,7 @@ All datasets including ISPRS Potsdam, ISPRS Vaihingen, can be downloaded [here](
 
 ## Citation
 
-If you use our dataset or code for research, please cite this paper: 
+If you use our code for research, please cite this paper: 
 
 ```
 @article{FANG2026115625,
