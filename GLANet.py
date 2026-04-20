@@ -195,3 +195,43 @@ def GLANet(numclasses=6):
     model = MyNet(Bottleneck, layers=[3, 4, 6, 3], class_number=numclasses, dropout_rate=0.2)
     return model
 
+
+if __name__ == "__main__":
+    # 测试模型
+    # 对于您的需求：B, 3, 256, 256 输入，两分类问题（背景和水体）
+    batch_size = 5
+    num_classes = 2  # 两分类：背景和水体
+    model = GLANet(numclasses=num_classes)
+
+    # 创建测试输入
+    test_input = torch.randn(batch_size, 3, 256, 256)  # [B, C, H, W]
+
+    print(f"Input shape: {test_input.shape}")
+
+    # 模型前向推理
+    with torch.no_grad():  # 不需要梯度
+        output = model(test_input)
+
+    print(f"Output shape: {output.shape}")
+
+    # 输出形状应该是 [batch_size, num_classes, height, width]
+    # 即 [2, 2, 256, 256] - 对应每个像素属于背景或水体的概率
+    expected_shape = (batch_size, num_classes, 256, 256)
+    print(f"Expected output shape: {expected_shape}")
+
+    if output.shape == expected_shape:
+        print("✓ Model output shape is correct!")
+    else:
+        print(f"✗ Model output shape mismatch! Expected {expected_shape}, got {output.shape}")
+
+    # 显示输出的统计信息
+    print(f"Output value range: [{output.min():.4f}, {output.max():.4f}]")
+    print(f"Output mean: {output.mean():.4f}, std: {output.std():.4f}")
+
+    # 验证每个像素点预测的是哪个类别（选择概率最大的类别）
+    predictions = torch.argmax(output, dim=1)  # [B, H, W]
+    print(f"Predictions shape: {predictions.shape}")
+    print(f"Unique predicted classes: {torch.unique(predictions)}")
+
+    print("\nTest completed successfully!")
+

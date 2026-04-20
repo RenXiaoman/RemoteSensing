@@ -17,12 +17,14 @@ def setup_loaders(args):
         ]
     train_joint_transform = joint_transforms.Compose(train_joint_transform_list)
     train_input_transform = []
-    train_input_transform += [extended_transforms.ColorJitter(brightness=0.25,contrast=0.25,saturation=0.25,hue=0.25)]
-    train_input_transform += [extended_transforms.RandomGaussianBlur()]
-    train_input_transform += [standard_transforms.ToTensor(),standard_transforms.Normalize(*mean_std)]
+    # train_input_transform += [extended_transforms.ColorJitter(brightness=0.25,contrast=0.25,saturation=0.25,hue=0.25)]
+    # train_input_transform += [extended_transforms.RandomGaussianBlur()]
+    # train_input_transform += [standard_transforms.ToTensor(),standard_transforms.Normalize(*mean_std)]
+    train_input_transform += [standard_transforms.ToTensor()]
     train_input_transform = standard_transforms.Compose(train_input_transform)
 
-    val_input_transform = standard_transforms.Compose([standard_transforms.ToTensor(),standard_transforms.Normalize(*mean_std)])
+    # val_input_transform = standard_transforms.Compose([standard_transforms.ToTensor(),standard_transforms.Normalize(*mean_std)])
+    val_input_transform = standard_transforms.Compose([standard_transforms.ToTensor()])
 
     target_transform = extended_transforms.MaskToTensor()
 
@@ -32,8 +34,8 @@ def setup_loaders(args):
     nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])  # number of workers，单处理器一般设置为0
     print('Using {} dataloader workers every process'.format(nw))
 
-    train_loader = DataLoader(train_set, batch_size=batch_size,num_workers=nw, shuffle=True, drop_last=True)
-    val_loader = DataLoader(val_set, batch_size=batch_size,num_workers=nw, shuffle=True, drop_last=True)
+    train_loader = DataLoader(train_set, batch_size=batch_size,num_workers=nw, shuffle=False)
+    val_loader = DataLoader(val_set, batch_size=batch_size,num_workers=nw, shuffle=False)
 
     print("train_loader:"+str(len(train_loader)))
     print("val_loader:"+str(len(val_loader)))

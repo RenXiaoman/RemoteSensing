@@ -17,10 +17,21 @@ def evaluate(conf_mat):
 
     print_evaluate_results(conf_mat, IoU)
 
+    # 计算F1分数
+    precision = np.diag(conf_mat) / conf_mat.sum(axis=0)  # TP / (TP + FP)
+    recall = np.diag(conf_mat) / conf_mat.sum(axis=1)     # TP / (TP + FN)
+    f1_score = 2 * (precision * recall) / (precision + recall)
+    mean_f1 = np.nanmean(f1_score)
+
+    # 计算Dice系数
+    dice_coeff = 2 * np.diag(conf_mat) / (conf_mat.sum(axis=1) + conf_mat.sum(axis=0))
+    mean_dice = np.nanmean(dice_coeff)
+
     # 求kappa
     pe = np.dot(np.sum(conf_mat, axis=0), np.sum(conf_mat, axis=1)) / (conf_mat.sum()**2)
     kappa = (acc - pe) / (1 - pe)
-    return acc, acc_per_class, acc_cls, IoU, mean_IoU, kappa
+    
+    return acc, acc_per_class, acc_cls, IoU, mean_IoU, kappa, f1_score, mean_f1, dice_coeff, mean_dice
 
 def save_log(prefix, output_dir):
     fmt = '%(asctime)s.%(msecs)03d %(message)s'
@@ -40,12 +51,45 @@ def print_evaluate_results(hist, iu):
     iu_false_negative = hist.sum(axis=0) - np.diag(hist)
     iu_true_positive = np.diag(hist)
 
-    logging.info('label_id          IoU    Precision Recall')
-    for idx, i in enumerate(iu):
+    # 只打印类别1（非背景类）的指标
+    idx = 1  # 只关注类别1
+
+    if idx < len(iu) and hist.sum(axis=1)[idx] > 0:  # 确保类别存在且有像素
         idx_string = "{:2d}".format(idx)
-        iu_string = '{:5.2f}'.format(i * 100)
-        precision = '{:5.2f}'.format(100 *iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_positive[idx]))
-        recall = '{:5.2f}'.format(100 *iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_negative[idx]))
+        iu_string = '{:5.2f}'.format(iu[idx] * 100)
+        precision = '{:5.2f}'.format(100 * iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_positive[idx]))
+        recall = '{:5.2f}'.format(100 * iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_negative[idx]))
 
+        # 计算F1分数
+        precision_val = iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_positive[idx])
+        recall_val = iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_negative[idx])
+        f1 = 2 * (precision_val * recall_val) / (precision_val + recall_val) if (precision_val + recall_val) > 0 else 0
+        f1_string = '{:5.2f}'.format(f1 * 100)
 
-        logging.info('{}       {}  {}     {}'.format(idx_string,  iu_string, precision, recall))
+        # 计算Dice系数
+        dice = (2 * iu_true_positive[idx]) / (iu_true_positive[idx] + iu_false_positive[idx] + iu_true_positive[idx] + iu_false_negative[idx])
+        dice_string = '{:5.2f}'.format(dice * 100)
+
+        logging.info('label_id          IoU    Precision Recall   F1-Score Dice')
+        logging.info('{}       {}  {}     {}     {}    {}'.format(idx_string, iu_string, precision, recall, f1_string, dice_string))
+    else:
+        # 如果类别1不存在，打印所有类别
+        logging.info('label_id          IoU    Precision Recall')
+        for idx, i in enumerate(iu):
+            if hist.sum(axis=1)[idx] > 0:  # 确保类别存在且有像素
+                idx_string = "{:2d}".format(idx)
+                iu_string = '{:5.2f}'.format(i * 100)
+                precision = '{:5.2f}'.format(100 * iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_positive[idx]))
+                recall = '{:5.2f}'.format(100 * iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_negative[idx]))
+
+                # 计算F1分数
+                precision_val = iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_positive[idx])
+                recall_val = iu_true_positive[idx] / (iu_true_positive[idx] + iu_false_negative[idx])
+                f1 = 2 * (precision_val * recall_val) / (precision_val + recall_val) if (precision_val + recall_val) > 0 else 0
+                f1_string = '{:5.2f}'.format(f1 * 100)
+
+                # 计算Dice系数
+                dice = (2 * iu_true_positive[idx]) / (iu_true_positive[idx] + iu_false_positive[idx] + iu_true_positive[idx] + iu_false_negative[idx])
+                dice_string = '{:5.2f}'.format(dice * 100)
+
+                logging.info('{}       {}  {}     {}     {}    {}'.format(idx_string, iu_string, precision, recall, f1_string, dice_string))

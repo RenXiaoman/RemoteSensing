@@ -26,7 +26,10 @@ class DeNormalize(object):
 
 class MaskToTensor(object):
     def __call__(self, img):
-        return torch.from_numpy(np.array(img, dtype=np.int32)).long()
+        # 将0-255的标签转换为0-1的标签，以适应2分类问题
+        img_array = np.array(img, dtype=np.int32)
+        img_array = img_array // 255  # 将255转换为1，0仍然是0
+        return torch.from_numpy(img_array).long()
 
 
 class ResizeHeight(object):
@@ -232,10 +235,10 @@ class ColorJitter(object):
             transforms.append(
                 torch_tr.Lambda(lambda img: adjust_saturation(img, saturation_factor)))
 
-        if hue > 0:
-            hue_factor = np.random.uniform(-hue, hue)
-            transforms.append(
-                torch_tr.Lambda(lambda img: adjust_hue(img, hue_factor)))
+        # if hue > 0:
+        #     hue_factor = np.random.uniform(-hue, hue)
+        #     transforms.append(
+        #         torch_tr.Lambda(lambda img: adjust_hue(img, hue_factor)))
 
         np.random.shuffle(transforms)
         transform = torch_tr.Compose(transforms)

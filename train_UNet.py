@@ -8,6 +8,7 @@ import numpy as np
 from GLANet import GLANet as GLANet
 
 from torch import nn
+from baseline.UNet import UNet
 from libs import average_meter, metric
 from torch.autograd import Variable
 import numpy as np
@@ -24,17 +25,17 @@ def parse_args():
     parser = argparse.ArgumentParser(description="RemoteSensingSegmentation by PyTorch")
     parser.add_argument('--batchsize', type=int, default=5, help='batchsize')
     # model and classes
-    parser.add_argument('--model', type=str, default='GLANet', help='model name')
+    parser.add_argument('--model', type=str, default='UNet', help='model name')
     parser.add_argument('--numclasses', type=int, default=2, help='number of classes')
     # GPU
-    parser.add_argument('--gpu', type=int, default=0, help='the chosen gpu')
+    parser.add_argument('--gpu', type=int, default=2, help='the chosen gpu')
     # learning_rate
     parser.add_argument('--base-lr', type=float, default=1e-4, metavar='M', help='')
     parser.add_argument('--weight-decay', type=float, default=0.0001, metavar='M', help='weight-decay (default:1e-4)')
     # best result
     parser.add_argument('--best-f1-score', type=float, default=0)
 
-    parser.add_argument('--total_epochs', type=int, default=500, metavar='N',
+    parser.add_argument('--total_epochs', type=int, default=400, metavar='N',
                         help='number of epochs to train (default: 120)')
     parser.add_argument('--start-epoch', type=int, default=0, metavar='N', help='start epoch (default:0)')
 
@@ -61,7 +62,7 @@ class Trainer(object):
 
         self.criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-        model = GLANet(numclasses=args.numclasses)
+        model = UNet(n_classes=args.numclasses, n_channels=3)
         self.model = model.cuda(args.gpu)
 
         self.optimizer = torch.optim.AdamW(model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)
