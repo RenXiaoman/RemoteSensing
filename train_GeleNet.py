@@ -5,7 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-from GLANet import GLANet as GLANet
+from baseline.GeleNet.GeleNet_models import GeleNet
 
 from torch import nn
 from libs import average_meter, metric
@@ -23,7 +23,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="RemoteSensingSegmentation by PyTorch")
     parser.add_argument('--batchsize', type=int, default=5, help='batchsize')
     # model and classes
-    parser.add_argument('--model', type=str, default='GLANet', help='model name')
+    parser.add_argument('--model', type=str, default='GeleNet', help='model name')
     parser.add_argument('--numclasses', type=int, default=2, help='number of classes')
     # GPU
     parser.add_argument('--gpu', type=int, default=2, help='the chosen gpu')
@@ -60,7 +60,7 @@ class Trainer(object):
 
         self.criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-        model = GLANet(numclasses=args.numclasses)
+        model = GeleNet(channel=32)
         self.model = model.cuda(args.gpu)
 
         self.optimizer = torch.optim.AdamW(model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)

@@ -5,7 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-from GLANet import GLANet as GLANet
+from baseline.SwinUNet.vision_transformer import SwinUnet
 
 from torch import nn
 from libs import average_meter, metric
@@ -15,7 +15,6 @@ from tqdm import tqdm
 import datasets
 import warnings
 from libs.metric import save_log
-
 warnings.filterwarnings("ignore")
 
 
@@ -23,7 +22,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="RemoteSensingSegmentation by PyTorch")
     parser.add_argument('--batchsize', type=int, default=5, help='batchsize')
     # model and classes
-    parser.add_argument('--model', type=str, default='GLANet', help='model name')
+    parser.add_argument('--model', type=str, default='SwinUnet', help='model name')
     parser.add_argument('--numclasses', type=int, default=2, help='number of classes')
     # GPU
     parser.add_argument('--gpu', type=int, default=2, help='the chosen gpu')
@@ -60,7 +59,8 @@ class Trainer(object):
 
         self.criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-        model = GLANet(numclasses=args.numclasses)
+        model = SwinUnet(num_classes=args.numclasses,
+                         img_size=256)
         self.model = model.cuda(args.gpu)
 
         self.optimizer = torch.optim.AdamW(model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)

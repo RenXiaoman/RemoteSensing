@@ -5,7 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-from GLANet import GLANet as GLANet
+from baseline.MAResUNet import MAResUNet
 
 from torch import nn
 from libs import average_meter, metric
@@ -13,6 +13,7 @@ from torch.autograd import Variable
 import numpy as np
 from tqdm import tqdm
 import datasets
+from tensorboardX import SummaryWriter
 import warnings
 from libs.metric import save_log
 
@@ -23,10 +24,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description="RemoteSensingSegmentation by PyTorch")
     parser.add_argument('--batchsize', type=int, default=5, help='batchsize')
     # model and classes
-    parser.add_argument('--model', type=str, default='GLANet', help='model name')
+    parser.add_argument('--model', type=str, default='MAResUNet', help='model name')
     parser.add_argument('--numclasses', type=int, default=2, help='number of classes')
     # GPU
-    parser.add_argument('--gpu', type=int, default=2, help='the chosen gpu')
+    parser.add_argument('--gpu', type=int, default=0, help='the chosen gpu')
     # learning_rate
     parser.add_argument('--base-lr', type=float, default=1e-4, metavar='M', help='')
     parser.add_argument('--weight-decay', type=float, default=0.0001, metavar='M', help='weight-decay (default:1e-4)')
@@ -60,7 +61,7 @@ class Trainer(object):
 
         self.criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-        model = GLANet(numclasses=args.numclasses)
+        model = MAResUNet(num_channels=3, num_classes=args.numclasses, pretrained=False)
         self.model = model.cuda(args.gpu)
 
         self.optimizer = torch.optim.AdamW(model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)
@@ -252,6 +253,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.benchmark = True
 
     args = parse_args()
+    writer = SummaryWriter(args.directory)
 
     trainer = Trainer(args)
     print("Starting Epoch:", args.start_epoch)

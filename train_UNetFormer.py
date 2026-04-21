@@ -8,6 +8,8 @@ import numpy as np
 from GLANet import GLANet as GLANet
 
 from torch import nn
+from baseline.UNetFormer import UNetFormer
+
 from libs import average_meter, metric
 from torch.autograd import Variable
 import numpy as np
@@ -23,7 +25,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="RemoteSensingSegmentation by PyTorch")
     parser.add_argument('--batchsize', type=int, default=5, help='batchsize')
     # model and classes
-    parser.add_argument('--model', type=str, default='GLANet', help='model name')
+    parser.add_argument('--model', type=str, default='UNetFormer', help='model name')
     parser.add_argument('--numclasses', type=int, default=2, help='number of classes')
     # GPU
     parser.add_argument('--gpu', type=int, default=2, help='the chosen gpu')
@@ -60,7 +62,13 @@ class Trainer(object):
 
         self.criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-        model = GLANet(numclasses=args.numclasses)
+        model = UNetFormer(
+            decode_channels=64,
+            dropout=0.1,
+            backbone_name='swsl_resnet18',
+            pretrained=False,
+            window_size=8,
+            num_classes=2)
         self.model = model.cuda(args.gpu)
 
         self.optimizer = torch.optim.AdamW(model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)

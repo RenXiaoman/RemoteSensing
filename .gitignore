@@ -5,3 +5,13 @@
 .vscode
 experiments/*
 validation/*
+
+
+
+
+# git status
+
+# git add -A
+# git commit -m "你的提交说明"
+
+# git push RS master:main

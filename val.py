@@ -1,17 +1,48 @@
 import argparse
 import json
 import os
+import warnings
 import torch
 import numpy as np
 from torch.autograd import Variable
 from tqdm import tqdm
 import datasets
 
+# 过滤第三方库的已知兼容性提示，避免验证输出被 warning 淹没。
+warnings.filterwarnings(
+    "ignore",
+    message=r"Importing from timm\.models\.layers is deprecated.*",
+    category=FutureWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=r"Importing from timm\.models\.registry is deprecated.*",
+    category=FutureWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=r"Overwriting pvt_v2_b[0-5] in registry.*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=r"Mapping deprecated model name swsl_resnet18 to current .*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=r"torch\.meshgrid: in an upcoming release.*",
+    category=UserWarning,
+)
 
 # 模型list
 from GLANet import GLANet as GLANet
 from baseline.UNet import UNet 
 from baseline.DeepLab import deeplabv3plus_resnet50
+from baseline.MAResUNet import MAResUNet
+from baseline.GeleNet.GeleNet_models import GeleNet
+from baseline.SwinUNet.vision_transformer import SwinUnet
+from baseline.UNetFormer import UNetFormer
 # 模型list
 
 from libs import metric
@@ -21,12 +52,12 @@ import matplotlib.patches as mpatches
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Validate deeplabv3plus on validation set")
-    parser.add_argument('--model-path', type=str, default='experiments/deeplabv3plus/epoch_184_f1_0.84444.pth', help='Path to trained model checkpoint')
+    parser = argparse.ArgumentParser(description="Validate UNetFormer on validation set")
+    parser.add_argument('--model-path', type=str, default='experiments/UNetFormer/epoch_150_f1_0.83207.pth', help='Path to trained model checkpoint')
     parser.add_argument('--batchsize', type=int, default=5, help='batchsize')
     parser.add_argument('--numclasses', type=int, default=2, help='number of classes')
     parser.add_argument('--gpu', type=int, default=0, help='the chosen gpu')
-    parser.add_argument('--output-dir', type=str, default='./validation/deeplabv3plus', help='Directory to save results')
+    parser.add_argument('--output-dir', type=str, default='./validation/UNetFormer', help='Directory to save results')
 
     args = parser.parse_args()
 
@@ -154,14 +185,20 @@ def build_summary(case_results):
         mean_value = float(np.mean(values)) if values.size > 0 else 0.0
         std_value = float(np.std(values)) if values.size > 0 else 0.0
 
-        # 转成百分比，保留两位小数
-        mean_percent = mean_value * 100
-        std_percent = std_value * 100
-
-        # 用 ± 符号显示
-        summary['metrics'][metric_name] = f"{mean_percent:.2f} ± {std_percent:.2f}"
+        # case_results 已经是百分比形式，这里直接汇总显示即可。
+        summary['metrics'][metric_name] = f"{mean_value:.2f} ± {std_value:.2f}"
 
     return summary
+
+
+def format_case_metrics(single_metrics):
+    """将单个 case 的指标转成百分比并保留两位小数。"""
+    return {
+        'precision': round(single_metrics['precision'] * 100, 2),
+        'recall': round(single_metrics['recall'] * 100, 2),
+        'f1_score': round(single_metrics['f1_score'] * 100, 2),
+        'iou': round(single_metrics['iou'] * 100, 2),
+    }
 
 
 def main():
@@ -173,12 +210,28 @@ def main():
 
     # 加载模型
     model = UNet(n_classes=args.numclasses, n_channels=3)
-    # model = GLANet(numclasses=args.numclasses)
-    model = deeplabv3plus_resnet50(
-            num_classes=2,
-            output_stride=8,
-            pretrained_backbone=False)
+    # model = GLANet(numclasses=args.numclasses) 
+    # model = deeplabv3plus_resnet50(               1
+    #         num_classes=2,
+    #         output_stride=8,
+    #         pretrained_backbone=False)
     
+    # model = MAResUNet(num_channels=3,             2
+    #                   num_classes=args.numclasses,
+    #                   pretrained=False)
+    
+    # model = GeleNet(channel=32)                   3
+    
+    # model = SwinUnet(num_classes=args.numclasses, 4
+    #                      img_size=256)
+    
+    model = UNetFormer(
+            decode_channels=64,
+            dropout=0.1,
+            backbone_name='swsl_resnet18',
+            pretrained=False,
+            window_size=8,
+            num_classes=2)
     
 
     model = model.cuda(args.gpu)
@@ -224,12 +277,7 @@ def main():
 
                 # 保存指标
                 img_idx = i * args.batchsize + j
-                results[f'image_{img_idx:04d}'] = {
-                    'precision': single_metrics['precision'],
-                    'recall': single_metrics['recall'],
-                    'f1_score': single_metrics['f1_score'],
-                    'iou': single_metrics['iou'],
-                }
+                results[f'image_{img_idx:04d}'] = format_case_metrics(single_metrics)
 
                 # 创建对比图像
                 comparison_fig = create_comparison_image(
