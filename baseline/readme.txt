@@ -67,3 +67,15 @@ https://github.com/WangLibo1995/GeoSeg/tree/main
   year={2022},
   publisher={Elsevier}
 }
+
+---------------------------------------------------------------
+https://github.com/ChenLu0000/CTCFNet
+@article{lu2024ctcfnet,
+  title={CTCFNet: CNN-transformer complementary and fusion network for high-resolution remote sensing image semantic segmentation},
+  author={Lu, Chen and Zhang, Xian and Du, Kaile and Xu, Han and Liu, Guangcan},
+  journal={IEEE Transactions on Geoscience and Remote Sensing},
+  volume={62},
+  pages={1--17},
+  year={2024},
+  publisher={IEEE}
+}

@@ -7,6 +7,26 @@ import numpy as np
 from torch.autograd import Variable
 from tqdm import tqdm
 import datasets
+import torch.nn as nn
+
+
+# 模型list
+from GLANet import GLANet as GLANet
+from baseline.UNet import UNet 
+from baseline.DeepLab import deeplabv3plus_resnet50
+from baseline.MAResUNet import MAResUNet
+from baseline.GeleNet.GeleNet_models import GeleNet
+from baseline.SwinUNet.vision_transformer import SwinUnet
+from baseline.UNetFormer import UNetFormer
+from baseline.CTCFNet import CTCFNet
+# 模型list
+
+from libs import metric
+import cv2
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+
 
 # 过滤第三方库的已知兼容性提示，避免验证输出被 warning 淹没。
 warnings.filterwarnings(
@@ -35,29 +55,13 @@ warnings.filterwarnings(
     category=UserWarning,
 )
 
-# 模型list
-from GLANet import GLANet as GLANet
-from baseline.UNet import UNet 
-from baseline.DeepLab import deeplabv3plus_resnet50
-from baseline.MAResUNet import MAResUNet
-from baseline.GeleNet.GeleNet_models import GeleNet
-from baseline.SwinUNet.vision_transformer import SwinUnet
-from baseline.UNetFormer import UNetFormer
-# 模型list
-
-from libs import metric
-import cv2
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-
-
 def parse_args():
-    parser = argparse.ArgumentParser(description="Validate UNetFormer on validation set")
-    parser.add_argument('--model-path', type=str, default='experiments/UNetFormer/epoch_150_f1_0.83207.pth', help='Path to trained model checkpoint')
+    parser = argparse.ArgumentParser(description="Validate CTCFNet on validation set")
+    parser.add_argument('--model-path', type=str, default='experiments/CTCFNet/epoch_97_f1_0.87290.pth', help='Path to trained model checkpoint')
     parser.add_argument('--batchsize', type=int, default=5, help='batchsize')
     parser.add_argument('--numclasses', type=int, default=2, help='number of classes')
     parser.add_argument('--gpu', type=int, default=0, help='the chosen gpu')
-    parser.add_argument('--output-dir', type=str, default='./validation/UNetFormer', help='Directory to save results')
+    parser.add_argument('--output-dir', type=str, default='./validation/CTCFNet', help='Directory to save results')
 
     args = parser.parse_args()
 
@@ -209,7 +213,7 @@ def main():
 
 
     # 加载模型
-    model = UNet(n_classes=args.numclasses, n_channels=3)
+    # model = UNet(out_channel=args.numclasses)
     # model = GLANet(numclasses=args.numclasses) 
     # model = deeplabv3plus_resnet50(               1
     #         num_classes=2,
@@ -225,13 +229,16 @@ def main():
     # model = SwinUnet(num_classes=args.numclasses, 4
     #                      img_size=256)
     
-    model = UNetFormer(
-            decode_channels=64,
-            dropout=0.1,
-            backbone_name='swsl_resnet18',
-            pretrained=False,
-            window_size=8,
-            num_classes=2)
+    # model = UNetFormer(
+    #         decode_channels=64,
+    #         dropout=0.1,
+    #         backbone_name='swsl_resnet18',
+    #         pretrained=False,
+    #         window_size=8,
+    #         num_classes=2)
+    model = CTCFNet(img_size=256, in_chans=3, class_dim=2,
+                  patch_size=4, embed_dims=[64, 128, 320, 512], num_heads=[1, 2, 5, 8], mlp_ratios=[8, 8, 4, 4], qkv_bias=True,
+                    norm_layer=nn.LayerNorm, depths=[3, 3, 6, 3], sr_ratios=[8, 4, 2, 1])
     
 
     model = model.cuda(args.gpu)
